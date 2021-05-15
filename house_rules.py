@@ -1,10 +1,11 @@
-#copied from https://github.com/1andDone/blackjack/blob/master/house_rules.py
+# copied from https://github.com/1andDone/blackjack/blob/master/house_rules.py
 class HouseRules(object):
     """
     HouseRules is an object where all of the table rules are set.
     """
+
     def __init__(
-            self, shoe_size, bet_limits, s17=True, blackjack_payout=1.5, max_hands=4,
+            self, shoe_size=8, bet_limits=None, s17=True, blackjack_payout=1.5, max_hands=4,
             double_down=True, split_unlike_tens=True, double_after_split=True,
             resplit_aces=False, insurance=True, late_surrender=True, dealer_shows_hole_card=False
     ):
@@ -38,6 +39,8 @@ class HouseRules(object):
             True if the dealer shows his hole card regardless of whether or not all players bust,
             surrender, or have natural 21, false otherwise (default is False)
         """
+        if bet_limits is None:
+            bet_limits = [0, 1]
         if shoe_size not in [4, 6, 8]:
             raise ValueError('Shoe size must be 4, 6, or 8.')
         if len(bet_limits) != 2:
@@ -70,12 +73,12 @@ class HouseRules(object):
 
     def __str__(self):
         return '{shoe_size} decks,{s17} {blackjack_payout}{double_after_split}{resplit_aces}{late_surrender}'.format(
-                shoe_size=self._shoe_size,
-                s17=' S17,' if self._s17 else 'H17,',
-                blackjack_payout=str(self._blackjack_payout) + 'x BJ,',
-                double_after_split=' DAS,' if self._double_after_split else '',
-                resplit_aces=' RSA,' if self._resplit_aces else '',
-                late_surrender=' LS' if self._late_surrender else ''
+            shoe_size=self._shoe_size,
+            s17=' S17,' if self._s17 else 'H17,',
+            blackjack_payout=str(self._blackjack_payout) + 'x BJ,',
+            double_after_split=' DAS,' if self._double_after_split else '',
+            resplit_aces=' RSA,' if self._resplit_aces else '',
+            late_surrender=' LS' if self._late_surrender else ''
         )
 
     @property

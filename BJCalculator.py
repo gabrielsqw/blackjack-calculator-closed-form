@@ -3,12 +3,16 @@ import pandas as pd
 import copy
 from collections import Counter
 from house_rules import HouseRules
+from cards import Cards
 
 
 class BJCalc:
     master = {}
+    hard = None
+    soft = None
+    dealer_prob = None
 
-    def __init__(self, r=HouseRules(), cards=None, cards_composition=None, player_cards=None, dealer_cards=None,
+    def __init__(self, r=HouseRules(), cards=Cards(), cards_composition=None, player_cards=None, dealer_card=None,
                  depth=1):
         if cards and cards_composition:
             raise ValueError('cards and cards_composition must not be both filled')
@@ -19,6 +23,11 @@ class BJCalc:
             self.cards_composition = Counter(cards.cards)
         if cards_composition:
             self.cards_composition = cards_composition
+        self.player_cards = player_cards
+        self.dealer_card = dealer_card
+        self.dealer_cardval = min(10, dealer_card)
+        self.player_cardval = sum(min(i, 10) for i in player_cards)
+        self.default_strat = self.generate_markov_chain_terminal({0: 0})
 
     # calculating probabilities using dictionaries
     @staticmethod
@@ -38,6 +47,7 @@ class BJCalc:
     # only working with cards 1 to 10
     # trying to generate sets representing the combination of cards discarded
     def generate_discarded_cards(self):
+        """ method 1, seems wrong
         discarded_cards = []
         for i in range(1, self.depth + 1):
             temp_cards = []
@@ -46,15 +56,43 @@ class BJCalc:
             temp_cards = [set(item) for item in set(frozenset(item) for item in temp_cards)]
             discarded_cards += temp_cards
         return discarded_cards
+        """
+        # method 2, saving each possible discarded cards as dict, then saving all in a list
+        discarded_cards = []
+        temp_cards = []
+        template = dict(zip(range(1, 11), [0, ] * 10))
+        # depth == 1
+        for i in range(1, 11):
+            temp_cards.append(template.copy())
+            temp_cards[-1][i] += 1
+        discarded_cards += temp_cards
+        prev_cards = temp_cards
+        temp_cards = []
+        if self.depth == 1:
+            return [frozenset(i.items()) for i in discarded_cards]
+        # depth > 1
+        for i in range(2, self.depth + 1):
+            for j in prev_cards:
+                if sum(np.array(list(j.values())) * np.array(range(1, 11))) > 21:
+                    continue
+                for k in range(1, 11):
+                    temp_cards.append(j.copy())
+                    temp_cards[-1][k] += 1
+                    if temp_cards[-1] in temp_cards[:-1]:
+                        del temp_cards[-1]
+            discarded_cards += temp_cards
+            prev_cards = temp_cards
+            temp_cards = []
+        return [frozenset(i.items()) for i in discarded_cards]
 
     def generate_probabilites(self, discarded_cards):
         d = copy.deepcopy(self.cards_composition)
-        for i in discarded_cards:
-            d[i] -= 1
+        for i, j in dict(discarded_cards).items():
+            d[i] -= j
         return self.probabilities(d)
 
     def generate_markov_chain_terminal(self, p):
-        '''
+        """
         k = [17,18,19,20,"Bust"]
         template = dict(zip(k,[0,]*5))
         hard = dict(zip(range(2, 32), [template, ] * 30))
@@ -68,27 +106,124 @@ class BJCalc:
             soft[i][i-10] = 1
         for i in range(16, 12, -1):
             for j in k:
-        '''
-        v = np.array(p.values)
-        k = [17, 18, 19, 20, "Bust"]
+        """
+        # v = np.array(list(p.values()))
+        k = [17, 18, 19, 20, 21, "Bust"]
         hard = pd.DataFrame(0, index=k, columns=range(2, 32))
         soft = pd.DataFrame(0, index=k, columns=range(11, 32))
-        if min(p.values) <= 0:
-            return {"hard": hard, "soft": soft}
         # a faster way of indexing would be very helpful
         for i in range(31, 16, -1):
-            if i < 21:
+            if i > 21:
                 hard[i]["Bust"] = 1
             else:
                 hard[i][i] = 1
         for i in range(31, 26, -1):
-            soft[i][i-10] = 1
+            soft[i][i - 10] = 1
 
+        if min(p.values()) <= 0:
+            return {"hard": hard, "soft": soft}
+
+        for i in range(16, 1, -1):
+            hard[i] = soft[i + 11] * p[1] + sum([hard[i + j] * p[j] for j in range(2, 11)])
+            if i > 11:
+                soft[i + 10] = hard[i]
+            elif i > 7:
+                soft[i + 10] = hard[i + 10]
+            elif i == 7:
+                if self.r.s17:
+                    soft[i + 10] = hard[i + 10]
+                else:
+                    soft[i + 10] = hard[i]
+            else:
+                soft[i + 10] = soft[i + 11] * p[1] + sum([soft[i + 10 + j] * p[j] for j in range(2, 11)])
+        soft[11] = soft[12] * p[1] + sum([soft[11 + j] * p[j] for j in range(2, 11)])
+        return {"hard": hard, "soft": soft}
+
+    # d is existing discarded card, card = new card, col = score, t = hard/soft
+    def mc_lookup(self, d, card, col, t):
+        if t == "hard":
+            if col >= 17:
+                return self.default_strat[t][col]
+        if t == "soft":
+            if self.r.s17:
+                if col >= 17:
+                    return self.default_strat[t][col]
+            else:
+                if col >= 18:
+                    return self.default_strat[t][col]
+
+        # returns a column needed, d is the existing discarded cards
+        d_copy = dict(d.copy())
+        d_copy[card] += 1
+        return self.master[frozenset(d_copy.items())][t][col]
+
+    def generate_markov_chain(self, d, p):
+        k = [17, 18, 19, 20, 21, "Bust"]
+        hard = pd.DataFrame(0, index=k, columns=range(2, 32))
+        soft = pd.DataFrame(0, index=k, columns=range(11, 32))
+        # a faster way of indexing would be very helpful
+        for i in range(31, 16, -1):
+            if i > 21:
+                hard[i]["Bust"] = 1
+            else:
+                hard[i][i] = 1
+        for i in range(31, 26, -1):
+            soft[i][i - 10] = 1
+
+        if min(p.values()) <= 0:
+            return {"hard": hard, "soft": soft}
+
+        for i in range(16, 1, -1):
+            hard[i] = self.mc_lookup(d, 1, i + 11, "soft") * p[1] + \
+                      sum([self.mc_lookup(d, j, i + j, "hard") * p[j] for j in range(2, 11)])
+            if i > 11:
+                soft[i + 10] = hard[i]
+            elif i > 7:
+                soft[i + 10] = hard[i + 10]
+            elif i == 7:
+                if self.r.s17:
+                    soft[i + 10] = hard[i + 10]
+                else:
+                    soft[i + 10] = hard[i]
+            else:
+                soft[i + 10] = self.mc_lookup(d, 1, i + 11, "soft") * p[1] + \
+                               sum([self.mc_lookup(d, j, i + 10 + j, "soft") * p[j] for j in range(2, 11)])
+        soft[11] = self.mc_lookup(d, 1, 12, "soft") * p[1] + \
+                   sum([self.mc_lookup(d, j, 11 + j, "soft") * p[j] for j in range(2, 11)])
+        return {"hard": hard, "soft": soft}
 
     def generate_probabilites_all(self):
-        disc = self.generate_discarded_cards()
-        for i in disc:
-            self.master[i] = {}
-            self.master[i]["p"] = self.generate_probabilites(i)
-        for i in range(self.depth, 0, -1):
-            pass
+        if self.depth != 0:
+            disc = self.generate_discarded_cards()
+            for i in disc:
+                self.master[i] = {}
+                self.master[i]["p"] = self.generate_probabilites(i)
+                self.master[i]["depth"] = sum(dict(i).values())
+            for i in range(self.depth, 0, -1):
+                if i == self.depth:
+                    for j in disc:
+                        if self.master[j]["depth"] == i:
+                            temp = self.generate_markov_chain_terminal(self.master[j]["p"])
+                            self.master[j]["hard"] = temp["hard"]
+                            self.master[j]["soft"] = temp["soft"]
+                else:
+                    for j in disc:
+                        if self.master[j]["depth"] == i:
+                            temp = self.generate_markov_chain(j, self.master[j]["p"])
+                            self.master[j]["hard"] = temp["hard"]
+                            self.master[j]["soft"] = temp["soft"]
+                pass
+            temp = self.generate_markov_chain(frozenset(dict(zip(range(1, 11), [0, ] * 10)).items()),
+                                              self.probabilities(self.cards_composition))
+        elif self.depth == 0:
+            temp = self.generate_markov_chain_terminal(self.probabilities(self.cards_composition))
+        self.hard = temp["hard"]
+        self.soft = temp["soft"]
+
+    def model_run(self):
+        self.generate_probabilites_all()
+
+
+if __name__ == "__main__":
+    x = BJCalc(player_cards=[10, 10], dealer_card=1, depth=0)
+    x.model_run()

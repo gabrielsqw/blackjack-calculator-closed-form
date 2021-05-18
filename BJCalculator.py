@@ -145,17 +145,26 @@ class BJCalc:
             if col >= 17:
                 return self.default_strat[t][col]
         if t == "soft":
-            if self.r.s17:
-                if col >= 17:
-                    return self.default_strat[t][col]
-            else:
-                if col >= 18:
-                    return self.default_strat[t][col]
+            if col >= 27:
+                return self.default_strat[t][col]
+            ''' erronous, and this part can be ommitted, but it might be faster to include if fixed
+            elif col <= 21:
+                if self.r.s17:
+                    if col >= 17:
+                        return self.default_strat[t][col]
+                elif not self.r.s17:
+                    if col >= 18:
+                        return self.default_strat[t][col]
+            '''
 
         # returns a column needed, d is the existing discarded cards
         d_copy = dict(d.copy())
         d_copy[card] += 1
-        return self.master[frozenset(d_copy.items())][t][col]
+        try:
+            return self.master[frozenset(d_copy.items())][t][col]
+        except KeyError:
+            # this may not seem obvious, but it works, with a reason, if im not mistaken. can be made faster
+            return 0
 
     def generate_markov_chain(self, d, p):
         k = [17, 18, 19, 20, 21, "Bust"]
@@ -186,13 +195,12 @@ class BJCalc:
                 else:
                     soft[i + 10] = hard[i]
             else:
-                soft[i + 10] = self.mc_lookup(d, 1, i + 11, "soft") * p[1] + \
-                               sum([self.mc_lookup(d, j, i + 10 + j, "soft") * p[j] for j in range(2, 11)])
-        soft[11] = self.mc_lookup(d, 1, 12, "soft") * p[1] + \
-                   sum([self.mc_lookup(d, j, 11 + j, "soft") * p[j] for j in range(2, 11)])
+                soft[i + 10] = sum([self.mc_lookup(d, j, i + 10 + j, "soft") * p[j] for j in range(1, 11)])
+        soft[11] = sum([self.mc_lookup(d, j, 11 + j, "soft") * p[j] for j in range(1, 11)])
         return {"hard": hard, "soft": soft}
 
     def generate_probabilites_all(self):
+        temp = None
         if self.depth != 0:
             disc = self.generate_discarded_cards()
             for i in disc:
@@ -200,6 +208,7 @@ class BJCalc:
                 self.master[i]["p"] = self.generate_probabilites(i)
                 self.master[i]["depth"] = sum(dict(i).values())
             for i in range(self.depth, 0, -1):
+                print("calculating for depth {}".format(i))
                 if i == self.depth:
                     for j in disc:
                         if self.master[j]["depth"] == i:
@@ -213,6 +222,7 @@ class BJCalc:
                             self.master[j]["hard"] = temp["hard"]
                             self.master[j]["soft"] = temp["soft"]
                 pass
+            print("calculating for depth 0")
             temp = self.generate_markov_chain(frozenset(dict(zip(range(1, 11), [0, ] * 10)).items()),
                                               self.probabilities(self.cards_composition))
         elif self.depth == 0:
@@ -225,5 +235,8 @@ class BJCalc:
 
 
 if __name__ == "__main__":
-    x = BJCalc(player_cards=[10, 10], dealer_card=1, depth=0)
+    x = BJCalc(player_cards=[10, 10], dealer_card=1, depth=5)
     x.model_run()
+    # error checking, must only have values 1, there may be rounding errors due to np.int64 data type
+    print(x.hard.sum(axis=0).value_counts())
+    print(x.soft.sum(axis=0).value_counts())

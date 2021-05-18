@@ -1,4 +1,4 @@
-# copied from https://github.com/1andDone/blackjack/blob/master/house_rules.py
+# copied and modified from https://github.com/1andDone/blackjack/blob/master/house_rules.py
 class HouseRules(object):
     """
     HouseRules is an object where all of the table rules are set.
@@ -7,7 +7,8 @@ class HouseRules(object):
     def __init__(
             self, shoe_size=8, bet_limits=None, s17=True, blackjack_payout=1.5, max_hands=4,
             double_down=True, split_unlike_tens=True, double_after_split=True,
-            resplit_aces=False, insurance=True, late_surrender=True, dealer_shows_hole_card=False
+            resplit_aces=False, insurance=True, late_surrender=True, dealer_shows_hole_card=False,
+            dealer_peeks_aces=False, dealer_peeks_tens=False
     ):
         """
         Parameters
@@ -39,6 +40,11 @@ class HouseRules(object):
             True if the dealer shows his hole card regardless of whether or not all players bust,
             surrender, or have natural 21, false otherwise (default is False)
         """
+        '''
+        dealer_peeks_aces, dealer_peeks_tens:
+            True if dealer peeks the hidden card when the up card is an ace/ten to check for bj.
+            Personally not aware of any irl dealer_peeks_tens
+        '''
         if bet_limits is None:
             bet_limits = [0, 1]
         if shoe_size not in [4, 6, 8]:
@@ -70,6 +76,8 @@ class HouseRules(object):
         self._insurance = insurance
         self._late_surrender = late_surrender
         self._dealer_shows_hole_card = dealer_shows_hole_card
+        self._dealer_peeks_aces = dealer_peeks_aces
+        self._dealer_peeks_tens = dealer_peeks_tens
 
     def __str__(self):
         return '{shoe_size} decks,{s17} {blackjack_payout}{double_after_split}{resplit_aces}{late_surrender}'.format(
@@ -132,3 +140,11 @@ class HouseRules(object):
     @property
     def dealer_shows_hole_card(self):
         return self._dealer_shows_hole_card
+
+    @property
+    def dealer_peeks_aces(self):
+        return self._dealer_peeks_aces
+
+    @property
+    def dealer_peeks_tens(self):
+        return self._dealer_peeks_tens

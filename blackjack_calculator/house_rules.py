@@ -1,14 +1,28 @@
-# copied and modified from https://github.com/1andDone/blackjack/blob/master/house_rules.py
-class HouseRules(object):
+# referenced from https://github.com/1andDone/blackjack/blob/master/house_rules.py
+from typing import List
+
+
+class HouseRules:
     """
-    HouseRules is an object where all of the table rules are set.
+    HouseRules is an object where all the table rules are set.
     """
 
     def __init__(
-            self, shoe_size=8, bet_limits=None, s17=True, blackjack_payout=1.5, max_hands=4,
-            double_down=True, split_unlike_tens=True, double_after_split=True,
-            resplit_aces=False, insurance=True, late_surrender=True, dealer_shows_hole_card=False,
-            dealer_peeks_aces=False, dealer_peeks_tens=False
+        self,
+        shoe_size: int = 8,
+        bet_limits: List[int | float] | None = None,
+        s17: bool = True,
+        blackjack_payout: float = 1.5,
+        max_hands: int = 4,
+        double_down: bool = True,
+        split_unlike_tens: bool = True,
+        double_after_split: bool = True,
+        resplit_aces: bool = False,
+        insurance: bool = True,
+        late_surrender: bool = True,
+        dealer_shows_hole_card: bool = False,
+        dealer_peeks_aces: bool = False,
+        dealer_peeks_tens: bool = False
     ):
         """
         Parameters
@@ -20,14 +34,16 @@ class HouseRules(object):
         s17 : bool, optional
             True if dealer stands on a soft 17, false otherwise (default is True)
         blackjack_payout : float, optional
-            Payout for a player receiving a natural blackjack (default is 1.5, which implies
-            a 3:2 payout)
+            Payout for a player receiving a natural blackjack (default is 1.5, which
+            implies a 3:2 payout)
         max_hands : int, optional
             Maximum number of hands that a player can play (default is 4)
         double_down : bool, optional
-            True if doubling is allowed on any first two cards, false otherwise (default is True)
+            True if doubling is allowed on any first two cards, false otherwise (default
+             is True)
         split_unlike_tens : bool, optional
-            True if able to split unlike 10's (i.e. 'J' and 'Q'), false otherwise (default is True)
+            True if able to split unlike 10's (i.e. 'J' and 'Q'), false otherwise
+            (default is True)
         double_after_split : bool, optional
             True if doubling after splits is allowed, false otherwise (default is True)
         resplit_aces : bool, optional
@@ -37,13 +53,14 @@ class HouseRules(object):
         late_surrender : bool, optional
             True if late surrender is allowed, false otherwise (default is True)
         dealer_shows_hole_card : bool, optional
-            True if the dealer shows his hole card regardless of whether or not all players bust,
-            surrender, or have natural 21, false otherwise (default is False)
+            True if the dealer shows his hole card regardless of whether or not all
+            players bust, surrender, or have natural 21, false otherwise (default is
+            False)
         """
         '''
         dealer_peeks_aces, dealer_peeks_tens:
-            True if dealer peeks the hidden card when the up card is an ace/ten to check for bj.
-            Personally not aware of any irl dealer_peeks_tens
+            True if dealer peeks the hidden card when the up card is an ace/ten to check
+             for bj. Personally not aware of any irl dealer_peeks_tens
         '''
         if bet_limits is None:
             bet_limits = [0, 1]
@@ -62,25 +79,29 @@ class HouseRules(object):
         if max_hands not in [2, 3, 4]:
             raise ValueError('Maximum number of hands must be 2, 3, or 4.')
         if resplit_aces and max_hands == 2:
-            raise ValueError('Max hands must be greater than 2 if re-splitting aces is allowed.')
-        self._shoe_size = shoe_size
-        self._min_bet = bet_limits[0]
-        self._max_bet = bet_limits[1]
-        self._s17 = s17
-        self._blackjack_payout = blackjack_payout
-        self._max_hands = max_hands
-        self._double_down = double_down
-        self._split_unlike_tens = split_unlike_tens
-        self._double_after_split = double_after_split
-        self._resplit_aces = resplit_aces
-        self._insurance = insurance
-        self._late_surrender = late_surrender
-        self._dealer_shows_hole_card = dealer_shows_hole_card
-        self._dealer_peeks_aces = dealer_peeks_aces
-        self._dealer_peeks_tens = dealer_peeks_tens
+            raise ValueError(
+                'Max hands must be greater than 2 if re-splitting aces is allowed.')
+        self._shoe_size: int = shoe_size
+        self._min_bet: float | int = bet_limits[0]
+        self._max_bet: float | int = bet_limits[1]
+        self._s17: bool = s17
+        self._blackjack_payout: float = blackjack_payout
+        self._max_hands: int = max_hands
+        self._double_down: bool = double_down
+        self._split_unlike_tens: bool = split_unlike_tens
+        self._double_after_split: bool = double_after_split
+        self._resplit_aces: bool = resplit_aces
+        self._insurance: bool = insurance
+        self._late_surrender: bool = late_surrender
+        self._dealer_shows_hole_card: bool = dealer_shows_hole_card
+        self._dealer_peeks_aces: bool = dealer_peeks_aces
+        self._dealer_peeks_tens: bool = dealer_peeks_tens
 
     def __str__(self):
-        return '{shoe_size} decks,{s17} {blackjack_payout}{double_after_split}{resplit_aces}{late_surrender}'.format(
+        return (
+            '{shoe_size} decks,{s17} {blackjack_payout}{double_after_split}'
+            '{resplit_aces}{late_surrender}'
+        ).format(
             shoe_size=self._shoe_size,
             s17=' S17,' if self._s17 else 'H17,',
             blackjack_payout=str(self._blackjack_payout) + 'x BJ,',
@@ -90,61 +111,61 @@ class HouseRules(object):
         )
 
     @property
-    def shoe_size(self):
+    def shoe_size(self) -> int:
         return self._shoe_size
 
     @property
-    def min_bet(self):
+    def min_bet(self) -> float | int:
         return self._min_bet
 
     @property
-    def max_bet(self):
+    def max_bet(self) -> float | int:
         return self._max_bet
 
     @property
-    def s17(self):
+    def s17(self) -> bool:
         return self._s17
 
     @property
-    def blackjack_payout(self):
+    def blackjack_payout(self) -> float:
         return self._blackjack_payout
 
     @property
-    def max_hands(self):
+    def max_hands(self) -> int:
         return self._max_hands
 
     @property
-    def double_down(self):
+    def double_down(self) -> bool:
         return self._double_down
 
     @property
-    def split_unlike_tens(self):
+    def split_unlike_tens(self) -> bool:
         return self._split_unlike_tens
 
     @property
-    def double_after_split(self):
+    def double_after_split(self) -> bool:
         return self._double_after_split
 
     @property
-    def resplit_aces(self):
+    def resplit_aces(self) -> bool:
         return self._resplit_aces
 
     @property
-    def insurance(self):
+    def insurance(self) -> bool:
         return self._insurance
 
     @property
-    def late_surrender(self):
+    def late_surrender(self) -> bool:
         return self._late_surrender
 
     @property
-    def dealer_shows_hole_card(self):
+    def dealer_shows_hole_card(self) -> bool:
         return self._dealer_shows_hole_card
 
     @property
-    def dealer_peeks_aces(self):
+    def dealer_peeks_aces(self) -> bool:
         return self._dealer_peeks_aces
 
     @property
-    def dealer_peeks_tens(self):
+    def dealer_peeks_tens(self) -> bool:
         return self._dealer_peeks_tens

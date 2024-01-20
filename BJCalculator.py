@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import copy
 from collections import Counter
-from house_rules import HouseRules
+from blackjack_calculator.house_rules import HouseRules
 from cards import Cards
 
 

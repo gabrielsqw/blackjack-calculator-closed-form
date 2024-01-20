@@ -1,7 +1,7 @@
 # copied from https://github.com/1andDone/blackjack/blob/master/cards.py
 import random
 import numpy as np
-from house_rules import HouseRules
+from blackjack_calculator.house_rules import HouseRules
 
 
 class Cards(object):

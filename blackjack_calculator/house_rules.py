@@ -97,7 +97,7 @@ class HouseRules:
         self._dealer_peeks_aces: bool = dealer_peeks_aces
         self._dealer_peeks_tens: bool = dealer_peeks_tens
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             '{shoe_size} decks,{s17} {blackjack_payout}{double_after_split}'
             '{resplit_aces}{late_surrender}'

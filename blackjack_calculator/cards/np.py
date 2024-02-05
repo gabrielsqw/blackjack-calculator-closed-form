@@ -1,10 +1,15 @@
-from typing import Literal, Tuple, Self
+import sys
+from typing import Literal, Tuple
 
 import numpy as np
 
 from blackjack_calculator.cards.abstract import AbstractCards
 from blackjack_calculator.house_rules import HouseRules
 
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 class NumpyCards(AbstractCards[np.ndarray[Tuple[Literal[10]], np.dtype[np.int64 | np.float64]]]):
     @property

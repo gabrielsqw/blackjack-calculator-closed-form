@@ -11,6 +11,7 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Self
 
+
 class NumpyCards(AbstractCards[np.ndarray[Tuple[Literal[10]], np.dtype[np.int64 | np.float64]]]):
     @property
     def probabilities(self) -> np.ndarray[Tuple[Literal[10]], np.dtype[np.float64]]:

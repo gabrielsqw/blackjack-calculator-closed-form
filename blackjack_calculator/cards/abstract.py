@@ -1,7 +1,13 @@
+import sys
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Self
+from typing import Generic, TypeVar
 
 from blackjack_calculator.house_rules import HouseRules
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 _T = TypeVar("_T")
 

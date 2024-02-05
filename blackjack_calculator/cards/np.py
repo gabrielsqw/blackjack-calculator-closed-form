@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Tuple
+from typing import Literal, Tuple, Self
 
 import numpy as np
 
@@ -15,13 +15,13 @@ class NumpyCards(AbstractCards[np.ndarray[Tuple[Literal[10]], np.dtype[np.int64 
         d_ /= d_.sum()
         return d_
 
-    def draw_card(self, card: int) -> NumpyCards:
+    def draw_card(self, card: int) -> Self:
         _arr = np.zeros_like(self._deck)
         _arr[card] += 1
-        return NumpyCards(deck=self._deck - _arr)
+        return type(self)(deck=self._deck - _arr)
 
     @classmethod
-    def factory_from_house_rules(cls, rules: HouseRules) -> NumpyCards:
-        return NumpyCards(
+    def factory_from_house_rules(cls, rules: HouseRules) -> Self:
+        return cls(
             deck=rules.shoe_size * np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 16])
         )

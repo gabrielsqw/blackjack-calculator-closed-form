@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, Self
 
@@ -8,6 +10,7 @@ T_ = TypeVar("T_")
 
 class AbstractCards(Generic[T_], ABC):
     """for purposes of this repo we assume 10 agnostic"""
+
     def __init__(self, deck: T_):
         self._deck = deck
 

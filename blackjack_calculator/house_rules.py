@@ -6,23 +6,23 @@ class HouseRules:
     """
     HouseRules is an object where all the table rules are set.
     """
-
+    # pylint: disable=too-many-instance-attributes,too-many-arguments
     def __init__(
         self,
         shoe_size: int = 8,
         bet_limits: List[int | float] | None = None,
         s17: bool = True,
-        blackjack_payout: float = 1.5,
-        max_hands: int = 4,
-        double_down: bool = True,
-        split_unlike_tens: bool = True,
-        double_after_split: bool = True,
-        resplit_aces: bool = False,
-        insurance: bool = True,
-        late_surrender: bool = True,
-        dealer_shows_hole_card: bool = False,
-        dealer_peeks_aces: bool = False,
-        dealer_peeks_tens: bool = False
+            blackjack_payout: float = 1.5,
+            max_hands: int = 4,
+            double_down: bool = True,
+            split_unlike_tens: bool = True,
+            double_after_split: bool = True,
+            resplit_aces: bool = False,
+            insurance: bool = True,
+            late_surrender: bool = True,
+            dealer_shows_hole_card: bool = False,
+            dealer_peeks_aces: bool = False,
+            dealer_peeks_tens: bool = False,
     ):
         """
         Parameters
@@ -56,12 +56,12 @@ class HouseRules:
             True if the dealer shows his hole card regardless of whether or not all
             players bust, surrender, or have natural 21, false otherwise (default is
             False)
-        """
         '''
         dealer_peeks_aces, dealer_peeks_tens:
             True if dealer peeks the hidden card when the up card is an ace/ten to check
              for bj. Personally not aware of any irl dealer_peeks_tens
         '''
+        """
         if bet_limits is None:
             bet_limits = [0, 1]
         if shoe_size not in [4, 6, 8]:
@@ -98,6 +98,7 @@ class HouseRules:
         self._dealer_peeks_tens: bool = dealer_peeks_tens
 
     def __str__(self) -> str:
+        # pylint: disable=consider-using-f-string
         return (
             '{shoe_size} decks,{s17} {blackjack_payout}{double_after_split}'
             '{resplit_aces}{late_surrender}'

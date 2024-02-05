@@ -5,18 +5,18 @@ from typing import Generic, TypeVar, Self
 
 from blackjack_calculator.house_rules import HouseRules
 
-T_ = TypeVar("T_")
+_T = TypeVar("_T")
 
 
-class AbstractCards(Generic[T_], ABC):
+class AbstractCards(Generic[_T], ABC):
     """for purposes of this repo we assume 10 agnostic"""
 
-    def __init__(self, deck: T_):
+    def __init__(self, deck: _T):
         self._deck = deck
 
     @property
     @abstractmethod
-    def probabilities(self) -> T_:
+    def probabilities(self) -> _T:
         """Obtain probabilities for next draw realization, some array of sized 10"""
 
     @abstractmethod

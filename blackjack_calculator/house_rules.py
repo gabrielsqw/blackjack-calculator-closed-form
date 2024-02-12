@@ -8,16 +8,18 @@ class HouseRules:
     """
     # pylint: disable=too-many-instance-attributes,too-many-arguments
     def __init__(
-        self,
-        shoe_size: int = 8,
-        bet_limits: List[int | float] | None = None,
-        s17: bool = True,
+            self,
+            shoe_size: int = 8,
+            bet_limits: List[int | float] | None = None,
+            s17: bool = True,
             blackjack_payout: float = 1.5,
             max_hands: int = 4,
             double_down: bool = True,
             split_unlike_tens: bool = True,
             double_after_split: bool = True,
             resplit_aces: bool = False,
+            immediate_distribute_after_split: bool = True,
+            no_bj_no_action_after_split_aces: bool = True,
             insurance: bool = True,
             late_surrender: bool = True,
             dealer_shows_hole_card: bool = False,
@@ -48,6 +50,13 @@ class HouseRules:
             True if doubling after splits is allowed, false otherwise (default is True)
         resplit_aces : bool, optional
             True if re-splitting aces is allowed, false otherwise (default is False)
+        immediate_distribute_after_split: bool
+            True if both hands are dealt 1 card immediately after split, false if 2nd
+            card for 2nd hand is dealt only after 1st hand is finished
+        no_bj_no_action_after_split_aces: bool
+            True if splitting aces will deal only one card only to each hand with no
+            blackjack, False if otherwise. Personally never seen any case where this is
+            not True
         insurance : bool, optional
             True if insurance bet is allowed, false otherwise (default is True)
         late_surrender : bool, optional
@@ -91,6 +100,8 @@ class HouseRules:
         self._split_unlike_tens: bool = split_unlike_tens
         self._double_after_split: bool = double_after_split
         self._resplit_aces: bool = resplit_aces
+        self._immediate_distribute_after_split: bool = immediate_distribute_after_split
+        self._no_bj_no_action_after_split_aces: bool = no_bj_no_action_after_split_aces
         self._insurance: bool = insurance
         self._late_surrender: bool = late_surrender
         self._dealer_shows_hole_card: bool = dealer_shows_hole_card
@@ -150,6 +161,14 @@ class HouseRules:
     @property
     def resplit_aces(self) -> bool:
         return self._resplit_aces
+
+    @property
+    def immediate_distribute_after_split(self) -> bool:
+        return self._immediate_distribute_after_split
+
+    @property
+    def no_bj_no_action_after_split_aces(self) -> bool:
+        return self._no_bj_no_action_after_split_aces
 
     @property
     def insurance(self) -> bool:

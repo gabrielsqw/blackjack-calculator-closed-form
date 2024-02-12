@@ -1,7 +1,9 @@
-import numpy as np
-import pandas as pd
 import copy
 from collections import Counter
+
+import numpy as np
+import pandas as pd
+
 from blackjack_calculator.house_rules import HouseRules
 from cards import Cards
 
@@ -235,7 +237,7 @@ class BJCalc:
 
 
 if __name__ == "__main__":
-    x = BJCalc(player_cards=[10, 10], dealer_card=1, depth=5)
+    x = BJCalc(player_cards=[10, 10], dealer_card=1, depth=1)
     x.model_run()
     # error checking, must only have values 1, there may be rounding errors due to np.int64 data type
     print(x.hard.sum(axis=0).value_counts())

@@ -16,7 +16,7 @@ else:
 _T = TypeVar("_T")
 
 
-def _default_table() -> pd.DataFrame:
+def _default_table(min_num: int = 2) -> pd.DataFrame:
     """returns starting point for hard table so 30-22 for bust cards etc"""
     return pd.DataFrame(
         {
@@ -24,7 +24,7 @@ def _default_table() -> pd.DataFrame:
                 {"H17": 0, "H18": 0, "H19": 0, "H20": 0, "H21": 0, "BUST": 0}
                 | ({("BUST" if i > 21 else f"H{i}"): 1} if i >= 17 else {})
             )
-            for i in range(1, 33)
+            for i in range(min_num, 33)
         }
     )
 
@@ -77,23 +77,31 @@ class AbstractCards(Generic[_T], ABC):
         is done for clarity, this method should be overridden for performance in
         subclasses
 
+        Assumes dealer stands on soft 17, to implement general case later
+
         Parameters
         ----------
         dealer_up_card_lbound : int
             lower bound for dealer up card computation
         """
-        _p = self.probabilities
-        _p_np = np.zeros(11)
+        _p: _T = self.probabilities
+        _p_np: np.ndarray = np.zeros(11)
         for i in range(1, 11):
             _p_np[i] = _p[i]
         _p_idx = np.arange(11)
-        _hard_cache = _default_table()
+        _hard_cache = _default_table(max(dealer_up_card_lbound, 2))
         for i in range(16, 10, -1):
             _hard_cache[i] = (_p_np * _hard_cache[_p_idx + i]).sum(axis=1)
-        _soft_cache = _default_table()
+        _soft_cache = _default_table(max(dealer_up_card_lbound, 11))
         _soft_cache[list(range(22, 33))] = _hard_cache[list(range(12, 23))]
         for i in range(16, 10, -1):
             _soft_cache[i] = (_p_np * _soft_cache[_p_idx + i]).sum(axis=1)
-        # finally the last few cards
+        if dealer_up_card_lbound < 11:
+            ace_p = _p_np[1]
+            _p_np[1] = 0
+            for i in range(11, max(dealer_up_card_lbound, 2) - 1, -1):
+                _hard_cache[i] = (_p_np * _hard_cache[_p_idx + i]).sum(
+                    axis=1
+                ) + ace_p * _soft_cache[i + 11]
 
         return _hard_cache, _soft_cache

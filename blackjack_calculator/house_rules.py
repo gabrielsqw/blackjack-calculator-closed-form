@@ -6,25 +6,26 @@ class HouseRules:
     """
     HouseRules is an object where all the table rules are set.
     """
+
     # pylint: disable=too-many-instance-attributes,too-many-arguments
     def __init__(
-            self,
-            shoe_size: int = 8,
-            bet_limits: List[int | float] | None = None,
-            s17: bool = True,
-            blackjack_payout: float = 1.5,
-            max_hands: int = 4,
-            double_down: bool = True,
-            split_unlike_tens: bool = True,
-            double_after_split: bool = True,
-            resplit_aces: bool = False,
-            immediate_distribute_after_split: bool = True,
-            no_bj_no_action_after_split_aces: bool = True,
-            insurance: bool = True,
-            late_surrender: bool = True,
-            dealer_shows_hole_card: bool = False,
-            dealer_peeks_aces: bool = False,
-            dealer_peeks_tens: bool = False,
+        self,
+        shoe_size: int = 8,
+        bet_limits: List[int | float] | None = None,
+        s17: bool = True,
+        blackjack_payout: float = 1.5,
+        max_hands: int = 4,
+        double_down: bool = True,
+        split_unlike_tens: bool = True,
+        double_after_split: bool = True,
+        resplit_aces: bool = False,
+        immediate_distribute_after_split: bool = True,
+        no_bj_no_action_after_split_aces: bool = True,
+        insurance: bool = True,
+        late_surrender: bool = True,
+        dealer_shows_hole_card: bool = False,
+        dealer_peeks_aces: bool = False,
+        dealer_peeks_tens: bool = False,
     ):
         """
         Parameters
@@ -74,22 +75,23 @@ class HouseRules:
         if bet_limits is None:
             bet_limits = [0, 1]
         if shoe_size not in [4, 6, 8]:
-            raise ValueError('Shoe size must be 4, 6, or 8.')
+            raise ValueError("Shoe size must be 4, 6, or 8.")
         if len(bet_limits) != 2:
-            raise ValueError('Bet limits should be a list of 2 integers.')
+            raise ValueError("Bet limits should be a list of 2 integers.")
         if not all(isinstance(bet, int) for bet in bet_limits):
-            raise TypeError('Bet limits need to be integer values.')
+            raise TypeError("Bet limits need to be integer values.")
         if bet_limits[0] < 0:
-            raise ValueError('Minimum bet at table must be an integer greater than 0.')
+            raise ValueError("Minimum bet at table must be an integer greater than 0.")
         if bet_limits[1] <= bet_limits[0]:
-            raise ValueError('Maximum bet at table must be greater than minimum bet.')
+            raise ValueError("Maximum bet at table must be greater than minimum bet.")
         if blackjack_payout <= 1:
-            raise ValueError('Blackjack payout must be greater than 1.')
+            raise ValueError("Blackjack payout must be greater than 1.")
         if max_hands not in [2, 3, 4]:
-            raise ValueError('Maximum number of hands must be 2, 3, or 4.')
+            raise ValueError("Maximum number of hands must be 2, 3, or 4.")
         if resplit_aces and max_hands == 2:
             raise ValueError(
-                'Max hands must be greater than 2 if re-splitting aces is allowed.')
+                "Max hands must be greater than 2 if re-splitting aces is allowed."
+            )
         self._shoe_size: int = shoe_size
         self._min_bet: float | int = bet_limits[0]
         self._max_bet: float | int = bet_limits[1]
@@ -111,15 +113,15 @@ class HouseRules:
     def __str__(self) -> str:
         # pylint: disable=consider-using-f-string
         return (
-            '{shoe_size} decks,{s17} {blackjack_payout}{double_after_split}'
-            '{resplit_aces}{late_surrender}'
+            "{shoe_size} decks,{s17} {blackjack_payout}{double_after_split}"
+            "{resplit_aces}{late_surrender}"
         ).format(
             shoe_size=self._shoe_size,
-            s17=' S17,' if self._s17 else 'H17,',
-            blackjack_payout=str(self._blackjack_payout) + 'x BJ,',
-            double_after_split=' DAS,' if self._double_after_split else '',
-            resplit_aces=' RSA,' if self._resplit_aces else '',
-            late_surrender=' LS' if self._late_surrender else ''
+            s17=" S17," if self._s17 else "H17,",
+            blackjack_payout=str(self._blackjack_payout) + "x BJ,",
+            double_after_split=" DAS," if self._double_after_split else "",
+            resplit_aces=" RSA," if self._resplit_aces else "",
+            late_surrender=" LS" if self._late_surrender else "",
         )
 
     @property

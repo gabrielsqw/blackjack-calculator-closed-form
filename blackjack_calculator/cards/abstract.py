@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from threading import Lock
 from typing import Generic, TypeVar, Tuple, Dict
 
+import numpy as np
 import pandas as pd
 
 from blackjack_calculator.house_rules import HouseRules
@@ -18,15 +19,19 @@ _T = TypeVar("_T")
 def _default_table() -> pd.DataFrame:
     """returns starting point for hard table so 30-22 for bust cards etc"""
     return pd.DataFrame(
-        {i: (
-                {"H17": 0, "H18": 0, "H19": 0, "H20": 0, "H21": 0, "BUST": 0} |
-                {("BUST" if i > 21 else f"H{i}"): 1}
-        ) for i in range(17, 31)}
+        {
+            i: (
+                {"H17": 0, "H18": 0, "H19": 0, "H20": 0, "H21": 0, "BUST": 0}
+                | ({("BUST" if i > 21 else f"H{i}"): 1} if i >= 17 else {})
+            )
+            for i in range(1, 33)
+        }
     )
 
 
 class AbstractCards(Generic[_T], ABC):
     """for purposes of this repo we assume 10 agnostic"""
+
     __singleton_cache = {}
 
     def __new__(cls, deck: _T):
@@ -34,10 +39,10 @@ class AbstractCards(Generic[_T], ABC):
         if not hasattr(cls, "__singleton_cache"):
             cls.__singleton_cache = {}
         with Lock():
-            cls_cache = cls.__singleton_cache.get((t := tuple(_T)))
+            cls_cache = cls.__singleton_cache.get((t := tuple(deck)))
         if cls_cache:
             return cls_cache
-        cls_ = super(AbstractCards, cls).__new__(cls, deck=deck)
+        cls_ = super(AbstractCards, cls).__new__(cls)
         with Lock():
             cls.__singleton_cache[t] = cls_
         return cls_
@@ -60,7 +65,7 @@ class AbstractCards(Generic[_T], ABC):
         """returns an initial instance of object given house rules"""
 
     def construct_table(
-            self, dealer_up_card_lbound: int = 2
+        self, dealer_up_card_lbound: int = 2
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Constructs a table with rows = dealer outcome and columns = current score
         This table should have no blackjack case; and if there is such, it should be
@@ -77,10 +82,18 @@ class AbstractCards(Generic[_T], ABC):
         dealer_up_card_lbound : int
             lower bound for dealer up card computation
         """
-        _hard_cache: Dict[Tuple[str, int]] = {}
-        _soft_cache: Dict[Tuple[str, int]] = {}
-
         _p = self.probabilities
-        _p_dict: Dict[int, float] = {i: _p[i] for i in range(1, 11)}
+        _p_np = np.zeros(11)
+        for i in range(1, 11):
+            _p_np[i] = _p[i]
+        _p_idx = np.arange(11)
+        _hard_cache = _default_table()
+        for i in range(16, 10, -1):
+            _hard_cache[i] = (_p_np * _hard_cache[_p_idx + i]).sum(axis=1)
+        _soft_cache = _default_table()
+        _soft_cache[list(range(22, 33))] = _hard_cache[list(range(12, 23))]
+        for i in range(16, 10, -1):
+            _soft_cache[i] = (_p_np * _soft_cache[_p_idx + i]).sum(axis=1)
+        # finally the last few cards
 
-        return pd.DataFrame(_hard_cache), pd.DataFrame(_soft_cache)
+        return _hard_cache, _soft_cache

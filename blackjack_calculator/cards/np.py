@@ -23,11 +23,17 @@ class NumpyCards(
 
     @classmethod
     def factory_from_house_rules(cls, rules: HouseRules) -> Self:
-        return cls(
-            deck=rules.shoe_size * np.array([0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 16])
-        )
+        return cls(deck=rules.shoe_size * np.array([0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 16]))
 
     def draw_card(self, card: int) -> Self:
         _arr = np.zeros_like(self._deck)
         _arr[card] += 1
         return type(self)(deck=self._deck - _arr)
+
+
+if __name__ == "__main__":
+    cards = NumpyCards.factory_from_house_rules(HouseRules())
+    df1, df2 = cards.construct_table()
+    print(df1)
+    print(df2)
+    print("hello")

@@ -1,7 +1,8 @@
 import sys
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from threading import Lock
-from typing import Generic, TypeVar, Tuple, Dict
+from typing import Generic, TypeVar, Tuple
 
 import numpy as np
 import pandas as pd
@@ -32,19 +33,17 @@ def _default_table(min_num: int = 2) -> pd.DataFrame:
 class AbstractCards(Generic[_T], ABC):
     """for purposes of this repo we assume 10 agnostic"""
 
-    __singleton_cache = {}
+    __singleton_cache: dict[type, dict] = defaultdict(dict)
 
     def __new__(cls, deck: _T):
         """use double dunder to indicate cache per concrete class"""
-        if not hasattr(cls, "__singleton_cache"):
-            cls.__singleton_cache = {}
         with Lock():
-            cls_cache = cls.__singleton_cache.get((t := tuple(deck)))
+            cls_cache = cls.__singleton_cache[cls].get((t := tuple(deck)))
         if cls_cache:
             return cls_cache
         cls_ = super(AbstractCards, cls).__new__(cls)
         with Lock():
-            cls.__singleton_cache[t] = cls_
+            cls.__singleton_cache[cls][t] = cls_
         return cls_
 
     def __init__(self, deck: _T):

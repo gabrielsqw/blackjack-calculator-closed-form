@@ -3,7 +3,10 @@ from typing import Literal, Tuple
 import numpy as np
 from numba import njit
 
-from blackjack_calculator.cards._utils_numba import fill_hard_geq_eleven, fill_hard_le_eleven
+from blackjack_calculator.cards._utils_numba import (
+    fill_hard_geq_eleven,
+    fill_hard_le_eleven,
+)
 from blackjack_calculator.cards.np import NumpyCards
 from blackjack_calculator.house_rules import HouseRules
 
@@ -49,12 +52,12 @@ class NumbaCards(NumpyCards):
         return _deck_to_p(self._deck)
 
     def construct_table_exact_np(
-            self, dealer_up_card_lbound: int = 2
+        self, dealer_up_card_lbound: int = 2, is_soft: bool = False
     ) -> tuple[np.ndarray, np.ndarray]:
-        if dealer_up_card_lbound >= 17:
-            return _numba_default_tables()
+        self._shortcut_odds(dealer_up_card_lbound, is_soft=is_soft)
+        return self._hard_cache, self._soft_cache
 
-    def shortcut_odds(self, current_score: int, is_soft: bool) -> np.ndarray:
+    def _shortcut_odds(self, current_score: int, is_soft: bool) -> np.ndarray:
         table = self._soft_cache if is_soft else self._hard_cache
         if table[:, current_score].any():
             return table[:, current_score]
@@ -65,13 +68,22 @@ class NumbaCards(NumpyCards):
         # 3 cases: hard >= 11, soft, hard < 11
         if is_soft:
             fill_hard_geq_eleven(lbound=11, p_arr=_p_np, hard_cache=hard_cache)
-            fill_hard_geq_eleven(lbound=current_score, p_arr=_p_np, hard_cache=soft_cache)
+            fill_hard_geq_eleven(
+                lbound=current_score, p_arr=_p_np, hard_cache=soft_cache
+            )
         elif current_score > 10:
-            fill_hard_geq_eleven(lbound=current_score, p_arr=_p_np, hard_cache=hard_cache)
+            fill_hard_geq_eleven(
+                lbound=current_score, p_arr=_p_np, hard_cache=hard_cache
+            )
         else:
             fill_hard_geq_eleven(lbound=11, p_arr=_p_np, hard_cache=hard_cache)
             fill_hard_geq_eleven(lbound=11, p_arr=_p_np, hard_cache=soft_cache)
-            fill_hard_le_eleven(lbound=current_score, p_arr=_p_np, hard_cache=hard_cache, soft_cache=soft_cache)
+            fill_hard_le_eleven(
+                lbound=current_score,
+                p_arr=_p_np,
+                hard_cache=hard_cache,
+                soft_cache=soft_cache,
+            )
         return table[:, current_score]
 
 
@@ -79,4 +91,4 @@ if __name__ == "__main__":
     cards = NumbaCards.factory_from_house_rules(HouseRules())
     print(cards.probabilities)
     print(_numba_default_tables())
-    print(cards.shortcut_odds(12, False))
+    print(cards._shortcut_odds(12, False))

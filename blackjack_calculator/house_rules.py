@@ -18,6 +18,8 @@ class HouseRules:
         double_down: bool = True,
         split_unlike_tens: bool = True,
         double_after_split: bool = True,
+        has_max_split: bool = False,
+        max_split_count: int = 1,
         resplit_aces: bool = False,
         immediate_distribute_after_split: bool = True,
         no_bj_no_action_after_split_aces: bool = True,
@@ -101,6 +103,8 @@ class HouseRules:
         self._double_down: bool = double_down
         self._split_unlike_tens: bool = split_unlike_tens
         self._double_after_split: bool = double_after_split
+        self._has_max_split: bool = has_max_split
+        self._max_split_count: int = max_split_count
         self._resplit_aces: bool = resplit_aces
         self._immediate_distribute_after_split: bool = immediate_distribute_after_split
         self._no_bj_no_action_after_split_aces: bool = no_bj_no_action_after_split_aces
@@ -159,6 +163,14 @@ class HouseRules:
     @property
     def double_after_split(self) -> bool:
         return self._double_after_split
+
+    @property
+    def has_max_split(self) -> bool:
+        return self._has_max_split
+
+    @property
+    def max_split_count(self) -> int:
+        return self._max_split_count
 
     @property
     def resplit_aces(self) -> bool:

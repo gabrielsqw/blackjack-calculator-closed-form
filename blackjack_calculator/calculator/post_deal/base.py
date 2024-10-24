@@ -21,3 +21,15 @@ class AbstractBlackjackPostDealCalculator:
 
     def compute_ev(self) -> float:
         pass
+
+    def compute_stand(self) -> float:
+        """ev if stand"""
+
+    def compute_hit(self) -> float:
+        """ev if hit"""
+
+    def compute_double(self) -> float:
+        """ev if double"""
+
+    def compute_split(self) -> float:
+        """ev if split"""

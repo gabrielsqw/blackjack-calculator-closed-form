@@ -1,5 +1,4 @@
 # referenced from https://github.com/1andDone/blackjack/blob/master/house_rules.py
-from typing import List
 
 
 class HouseRules:
@@ -11,7 +10,7 @@ class HouseRules:
     def __init__(
         self,
         shoe_size: int = 8,
-        bet_limits: List[int | float] | None = None,
+        bet_limits: tuple[int | float, int | float] | None = None,
         s17: bool = True,
         blackjack_payout: float = 1.5,
         max_hands: int = 4,
@@ -34,8 +33,8 @@ class HouseRules:
         ----------
         shoe_size: int
             Number of decks used during a blackjack game
-        bet_limits : list
-            List containing the minimum and maximum bet allowed at the table
+        bet_limits : tuple[int | float, int | float]
+            Tuple of len 2 containing the minimum and maximum bet allowed at the table
         s17 : bool, optional
             True if dealer stands on a soft 17, false otherwise (default is True)
         blackjack_payout : float, optional
@@ -203,3 +202,43 @@ class HouseRules:
     @property
     def dealer_peeks_tens(self) -> bool:
         return self._dealer_peeks_tens
+
+
+six_deck_hand_shuffle_rules_template = HouseRules(
+    shoe_size=6,
+    bet_limits=(5, 1000),  # replace this
+    s17=True,
+    max_hands=4,
+    double_down=True,
+    split_unlike_tens=True,
+    double_after_split=True,
+    has_max_split=False,
+    max_split_count=1,  # this does not do anything
+    resplit_aces=True,
+    immediate_distribute_after_split=True,
+    no_bj_no_action_after_split_aces=True,
+    insurance=False,
+    late_surrender=False,
+    dealer_shows_hole_card=False,
+    dealer_peeks_aces=False,
+    dealer_peeks_tens=False,
+)
+eight_deck_online_rules_template = HouseRules(
+    shoe_size=8,
+    bet_limits=(1, 1000),  # replace this
+    s17=True,
+    max_hands=2,
+    double_down=True,
+    split_unlike_tens=True,
+    double_after_split=False,
+    has_max_split=True,
+    max_split_count=1,
+    resplit_aces=False,
+    immediate_distribute_after_split=False,
+    no_bj_no_action_after_split_aces=True,
+    insurance=False,
+    late_surrender=False,
+    dealer_shows_hole_card=False,
+    dealer_peeks_aces=True,
+    dealer_peeks_tens=False,
+)

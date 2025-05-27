@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import TypeVar, Generic
 
 from blackjack_calculator.calculator.post_deal.context import BlackjackContext
 from blackjack_calculator.cards.abstract import AbstractCards
@@ -6,7 +6,7 @@ from blackjack_calculator.cards.abstract import AbstractCards
 _T_Cards = TypeVar("_T_Cards", bound=AbstractCards)
 
 
-class AbstractBlackjackPostDealCalculator:
+class AbstractBlackjackPostDealCalculator(Generic[_T_Cards]):
     def __init__(
         self,
         player_cards: list[int],

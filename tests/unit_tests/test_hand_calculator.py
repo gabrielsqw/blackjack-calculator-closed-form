@@ -2,7 +2,7 @@
 import numpy as np
 
 from blackjack_calculator.calculator.context import BlackjackContext
-from blackjack_calculator.calculator.hand_calculator import RecursiveRecursiveBlackjackHandCalculator
+from blackjack_calculator.calculator.hand_calculator import RecursiveBlackjackHandCalculator
 from blackjack_calculator.cards.np import NumpyCards
 from blackjack_calculator.house_rules import HouseRules
 

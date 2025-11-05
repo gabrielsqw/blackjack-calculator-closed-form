@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import TypeVar
 
 from blackjack_calculator.calculator.context import BlackjackContext
@@ -6,7 +7,7 @@ from blackjack_calculator.cards.abstract import AbstractCards
 _T_Cards = TypeVar("_T_Cards", bound=AbstractCards)
 
 
-class BlackjackHandCalculator:
+class BlackjackHandCalculator(ABC):
     def __init__(
         self,
         player_cards: list[int],
@@ -55,6 +56,81 @@ class BlackjackHandCalculator:
             'H21': dealer_probs['H21'],
             'BUST': dealer_probs['BUST'],
         }
+
+    @abstractmethod
+    def compute_stand(self) -> float:
+        """
+        Calculate expected value if player stands.
+
+        Returns
+        -------
+        float
+            Expected value of standing with current hand
+        """
+
+    @abstractmethod
+    def compute_hit(self) -> float:
+        """
+        Calculate expected value if player hits.
+
+        Returns
+        -------
+        float
+            Expected value of hitting with current hand
+        """
+
+    @abstractmethod
+    def compute_double(self) -> float:
+        """
+        Calculate expected value if player doubles down.
+
+        Returns
+        -------
+        float
+            Expected value of doubling (2x bet, one card only, then must stand)
+        """
+
+    @abstractmethod
+    def compute_split(self) -> float:
+        """
+        Calculate expected value if player splits.
+
+        Returns
+        -------
+        float
+            Expected value of splitting the pair
+        """
+
+    def compute_ev(self) -> float:
+        """
+        Calculate best expected value across all possible actions.
+
+        Returns
+        -------
+        float
+            Best expected value for current hand
+        """
+        ev_stand = self.compute_stand()
+        ev_hit = self.compute_hit()
+
+        actions = [ev_stand, ev_hit]
+
+        if self.context.can_double(self.player_cards):
+            actions.append(self.compute_double())
+
+        if self.context.can_split(self.player_cards):
+            actions.append(self.compute_split())
+
+        return max(actions)
+
+
+class RecursiveBlackjackHandCalculator(BlackjackHandCalculator):
+    """
+    Concrete implementation of BlackjackHandCalculator using recursive calculation.
+
+    This implementation computes expected values by recursively exploring all possible
+    card draws and choosing optimal actions at each decision point.
+    """
 
     def compute_stand(self) -> float:
         """
@@ -122,7 +198,7 @@ class BlackjackHandCalculator:
                 # After hitting, player can choose to hit again or stand
                 # Calculate best action
                 new_deck = self.deck.draw_card(card)
-                new_calculator = BlackjackHandCalculator(
+                new_calculator = RecursiveBlackjackHandCalculator(
                     new_hand, self.dealer_card, new_deck, self.context
                 )
 
@@ -153,11 +229,10 @@ class BlackjackHandCalculator:
 
             # Create new hand after drawing card
             new_hand = self.player_cards + [card]
-            hand_value, _ = self._get_hand_value(new_hand)
 
             # After doubling, must stand
             new_deck = self.deck.draw_card(card)
-            new_calculator = BlackjackHandCalculator(
+            new_calculator = RecursiveBlackjackHandCalculator(
                 new_hand, self.dealer_card, new_deck, self.context
             )
 
@@ -206,10 +281,10 @@ class BlackjackHandCalculator:
 
                     deck_after_both = deck_after_first.draw_card(card2)
 
-                    calc1 = BlackjackHandCalculator(
+                    calc1 = RecursiveBlackjackHandCalculator(
                         hand1, self.dealer_card, deck_after_both, new_context
                     )
-                    calc2 = BlackjackHandCalculator(
+                    calc2 = RecursiveBlackjackHandCalculator(
                         hand2, self.dealer_card, deck_after_both, new_context
                     )
 
@@ -242,10 +317,10 @@ class BlackjackHandCalculator:
 
                 deck_after_both = deck_after_first.draw_card(card2)
 
-                calc1 = BlackjackHandCalculator(
+                calc1 = RecursiveBlackjackHandCalculator(
                     hand1, self.dealer_card, deck_after_both, new_context
                 )
-                calc2 = BlackjackHandCalculator(
+                calc2 = RecursiveBlackjackHandCalculator(
                     hand2, self.dealer_card, deck_after_both, new_context
                 )
 
@@ -264,25 +339,3 @@ class BlackjackHandCalculator:
                 ev_total += prob1 * prob2 * (ev1 + ev2)
 
         return ev_total
-
-    def compute_ev(self) -> float:
-        """
-        Calculate best expected value across all possible actions.
-
-        Returns
-        -------
-        float
-            Best expected value for current hand
-        """
-        ev_stand = self.compute_stand()
-        ev_hit = self.compute_hit()
-
-        actions = [ev_stand, ev_hit]
-
-        if self.context.can_double(self.player_cards):
-            actions.append(self.compute_double())
-
-        if self.context.can_split(self.player_cards):
-            actions.append(self.compute_split())
-
-        return max(actions)

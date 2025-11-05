@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 
 from blackjack_calculator.calculator.context import BlackjackContext
-from blackjack_calculator.calculator.hand_calculator import BlackjackHandCalculator
+from blackjack_calculator.calculator.hand_calculator import RecursiveBlackjackHandCalculator
 from blackjack_calculator.cards.abstract import AbstractCards
 from blackjack_calculator.cards.np import NumpyCards
 from blackjack_calculator.house_rules import HouseRules
@@ -51,7 +51,7 @@ class BlackjackCalculator:
                 .draw_card(player_cards[1])
             )
 
-        calculator = BlackjackHandCalculator(
+        calculator = RecursiveBlackjackHandCalculator(
             list(player_cards), dealer_card, deck=cards, context=context
         )
 

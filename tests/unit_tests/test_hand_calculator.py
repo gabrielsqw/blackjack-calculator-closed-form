@@ -1,8 +1,8 @@
-"""Tests for BlackjackHandCalculator"""
+"""Tests for RecursiveBlackjackHandCalculator"""
 import numpy as np
 
 from blackjack_calculator.calculator.context import BlackjackContext
-from blackjack_calculator.calculator.hand_calculator import BlackjackHandCalculator
+from blackjack_calculator.calculator.hand_calculator import RecursiveRecursiveBlackjackHandCalculator
 from blackjack_calculator.cards.np import NumpyCards
 from blackjack_calculator.house_rules import HouseRules
 
@@ -14,25 +14,25 @@ def test_hand_value_calculation():
     context = BlackjackContext(rules, 0)
 
     # Test hard 17
-    calc = BlackjackHandCalculator([10, 7], 10, deck, context)
+    calc = RecursiveBlackjackHandCalculator([10, 7], 10, deck, context)
     value, is_soft = calc._get_hand_value([10, 7])
     assert value == 17
     assert not is_soft
 
     # Test soft 17
-    calc = BlackjackHandCalculator([1, 6], 10, deck, context)
+    calc = RecursiveBlackjackHandCalculator([1, 6], 10, deck, context)
     value, is_soft = calc._get_hand_value([1, 6])
     assert value == 17
     assert is_soft
 
     # Test blackjack
-    calc = BlackjackHandCalculator([1, 10], 10, deck, context)
+    calc = RecursiveBlackjackHandCalculator([1, 10], 10, deck, context)
     value, is_soft = calc._get_hand_value([1, 10])
     assert value == 21
     assert is_soft
 
     # Test hard hand with ace
-    calc = BlackjackHandCalculator([1, 5, 10], 10, deck, context)
+    calc = RecursiveBlackjackHandCalculator([1, 5, 10], 10, deck, context)
     value, is_soft = calc._get_hand_value([1, 5, 10])
     assert value == 16
     assert not is_soft
@@ -45,17 +45,17 @@ def test_compute_stand_basic():
     context = BlackjackContext(rules, 0)
 
     # Test standing on 20 (should be positive EV)
-    calc = BlackjackHandCalculator([10, 10], 5, deck, context)
+    calc = RecursiveBlackjackHandCalculator([10, 10], 5, deck, context)
     ev_stand = calc.compute_stand()
     assert ev_stand > 0, "Standing on 20 vs 5 should have positive EV"
 
     # Test standing on busted hand
-    calc = BlackjackHandCalculator([10, 10, 5], 5, deck, context)
+    calc = RecursiveBlackjackHandCalculator([10, 10, 5], 5, deck, context)
     ev_stand = calc.compute_stand()
     assert ev_stand == -1.0, "Busted hand should have -1 EV"
 
     # Test standing on 17 (should be slightly negative vs dealer 10)
-    calc = BlackjackHandCalculator([10, 7], 10, deck, context)
+    calc = RecursiveBlackjackHandCalculator([10, 7], 10, deck, context)
     ev_stand = calc.compute_stand()
     assert ev_stand < 0, "Standing on 17 vs 10 should have negative EV"
 
@@ -67,7 +67,7 @@ def test_compute_stand_dealer_outcomes():
     context = BlackjackContext(rules, 0)
 
     # Standing on 21 should beat everything except dealer 21
-    calc = BlackjackHandCalculator([10, 10, 1], 5, deck, context)
+    calc = RecursiveBlackjackHandCalculator([10, 10, 1], 5, deck, context)
     ev_stand = calc.compute_stand()
     assert ev_stand > 0.5, "21 vs weak dealer should have high positive EV"
 
@@ -79,13 +79,13 @@ def test_compute_hit_vs_stand():
     context = BlackjackContext(rules, 0)
 
     # Hitting on 16 vs 10 should be better than standing
-    calc = BlackjackHandCalculator([10, 6], 10, deck, context)
+    calc = RecursiveBlackjackHandCalculator([10, 6], 10, deck, context)
     ev_stand = calc.compute_stand()
     ev_hit = calc.compute_hit()
     assert ev_hit > ev_stand, "Should hit 16 vs 10"
 
     # Standing on 20 should be better than hitting
-    calc = BlackjackHandCalculator([10, 10], 10, deck, context)
+    calc = RecursiveBlackjackHandCalculator([10, 10], 10, deck, context)
     ev_stand = calc.compute_stand()
     ev_hit = calc.compute_hit()
     assert ev_stand > ev_hit, "Should stand on 20"
@@ -98,7 +98,7 @@ def test_compute_double():
     context = BlackjackContext(rules, 0)
 
     # Test doubling on 11 vs 6 (classic double situation)
-    calc = BlackjackHandCalculator([5, 6], 6, deck, context)
+    calc = RecursiveBlackjackHandCalculator([5, 6], 6, deck, context)
     ev_double = calc.compute_double()
     ev_hit = calc.compute_hit()
 
@@ -113,7 +113,7 @@ def test_compute_split_pairs():
     context = BlackjackContext(rules, 0)
 
     # Test splitting 8s vs 10 (should be better than hitting 16)
-    calc = BlackjackHandCalculator([8, 8], 10, deck, context)
+    calc = RecursiveBlackjackHandCalculator([8, 8], 10, deck, context)
     ev_split = calc.compute_split()
     ev_hit = calc.compute_hit()
 
@@ -121,7 +121,7 @@ def test_compute_split_pairs():
     assert ev_split > ev_hit, "Should split 8s vs 10"
 
     # Test that non-pairs return -inf
-    calc = BlackjackHandCalculator([10, 9], 5, deck, context)
+    calc = RecursiveBlackjackHandCalculator([10, 9], 5, deck, context)
     ev_split = calc.compute_split()
     assert ev_split == float('-inf'), "Cannot split non-pairs"
 
@@ -133,7 +133,7 @@ def test_compute_split_aces():
     context = BlackjackContext(rules, 0)
 
     # Test splitting aces
-    calc = BlackjackHandCalculator([1, 1], 6, deck, context)
+    calc = RecursiveBlackjackHandCalculator([1, 1], 6, deck, context)
     ev_split = calc.compute_split()
     ev_hit = calc.compute_hit()
 
@@ -181,19 +181,19 @@ def test_basic_strategy_examples():
     context = BlackjackContext(rules, 0)
 
     # Always hit 12 vs 2 or 3
-    calc = BlackjackHandCalculator([10, 2], 2, deck, context)
+    calc = RecursiveBlackjackHandCalculator([10, 2], 2, deck, context)
     ev_hit = calc.compute_hit()
     ev_stand = calc.compute_stand()
     assert ev_hit > ev_stand, "Should hit 12 vs 2"
 
     # Always stand on hard 17 or higher
-    calc = BlackjackHandCalculator([10, 7], 10, deck, context)
+    calc = RecursiveBlackjackHandCalculator([10, 7], 10, deck, context)
     ev_hit = calc.compute_hit()
     ev_stand = calc.compute_stand()
     assert ev_stand > ev_hit, "Should stand on hard 17"
 
     # Double 11 vs anything but Ace
-    calc = BlackjackHandCalculator([5, 6], 9, deck, context)
+    calc = RecursiveBlackjackHandCalculator([5, 6], 9, deck, context)
     ev_double = calc.compute_double()
     ev_hit = calc.compute_hit()
     assert ev_double > ev_hit, "Should double 11 vs 9"

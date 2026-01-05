@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 
 from blackjack_calculator.calculator.context import BlackjackContext
-from blackjack_calculator.calculator.hand_calculator import BlackjackHandCalculator
+from blackjack_calculator.calculator.hand_calculator import RecursiveBlackjackHandCalculator
 from blackjack_calculator.cards.abstract import AbstractCards
 from blackjack_calculator.cards.np import NumpyCards
 from blackjack_calculator.house_rules import HouseRules
@@ -37,18 +37,23 @@ class BlackjackCalculator:
             Boolean which indicates if current cards is after or before deck is
             observed. If cards are dealt after deck observation, deck needs to be
             adjusted and adjust_deck = True, otherwise False (default is False)
+        context : BlackjackContext | None
+            Context for the hand (split count, etc.). If None, creates default context
         """
         cards = self.cards
-        context or BlackjackContext(self.house_rules, 0),
-        calculator = BlackjackHandCalculator(
-            list(player_cards), dealer_card, deck=self.cards, context=context
-        )
+        if context is None:
+            context = BlackjackContext(self.house_rules, 0)
+
         if adjust_deck:
             cards = (
                 cards.draw_card(player_cards[0])
                 .draw_card(dealer_card)
                 .draw_card(player_cards[1])
             )
+
+        calculator = RecursiveBlackjackHandCalculator(
+            list(player_cards), dealer_card, deck=cards, context=context
+        )
 
         ev_stand = calculator.compute_stand()
         ev_hit = calculator.compute_hit()

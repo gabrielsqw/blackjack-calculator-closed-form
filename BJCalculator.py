@@ -116,11 +116,11 @@ class BJCalc:
         # a faster way of indexing would be very helpful
         for i in range(31, 16, -1):
             if i > 21:
-                hard[i]["Bust"] = 1
+                hard.loc["Bust", i] = 1
             else:
-                hard[i][i] = 1
+                hard.loc[i, i] = 1
         for i in range(31, 26, -1):
-            soft[i][i - 10] = 1
+            soft.loc[i - 10, i] = 1
 
         if min(p.values()) <= 0:
             return {"hard": hard, "soft": soft}
@@ -175,11 +175,11 @@ class BJCalc:
         # a faster way of indexing would be very helpful
         for i in range(31, 16, -1):
             if i > 21:
-                hard[i]["Bust"] = 1
+                hard.loc["Bust", i] = 1
             else:
-                hard[i][i] = 1
+                hard.loc[i, i] = 1
         for i in range(31, 26, -1):
-            soft[i][i - 10] = 1
+            soft.loc[i - 10, i] = 1
 
         if min(p.values()) <= 0:
             return {"hard": hard, "soft": soft}
